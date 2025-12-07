@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Select Your Role</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .role-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 700px;
+        }
+        .welcome {
+            margin-bottom: 40px;
+        }
+        .welcome h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .welcome p {
+            color: #666;
+            font-size: 18px;
+        }
+        .role-buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .role-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: 3px solid transparent;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 280px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .role-card.employee {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .role-card.employee:hover {
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+        .role-card.hr {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .role-card.hr:hover {
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.5);
+        }
+        .role-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .role-card h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .role-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .logout-btn {
+            margin-top: 40px;
+            background: transparent;
+            border: 2px solid #ddd;
+            color: #666;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="role-container">
+        <div class="welcome">
+            <h1>Welcome! &#x1F44B;</h1>
+            <p id="userName">Select your role to continue</p>
+        </div>
+        
+        <div class="role-buttons">
+            <div class="role-card employee" onclick="selectRole('employee')">
+                <div class="role-icon">&#x1F464;</div>
+                <h2>Employee</h2>
+                <p>Ask HR questions, check policies, book meetings</p>
+            </div>
+            
+            <div class="role-card hr" onclick="selectRole('hr')">
+                <div class="role-icon">&#x1F454;</div>
+                <h2>HR Manager</h2>
+                <p>Manage employees, track welfare, view analytics</p>
+            </div>
+        </div>
+        
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        // Display user name
+        const userName = localStorage.getItem('userName') || 'Guest';
+        document.getElementById('userName').textContent = `Hello, ${userName}!`;
+
+        function selectRole(role) {
+            localStorage.setItem('userRole', role);
+            window.location.href = '/chat';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

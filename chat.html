@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HR Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .chat-container {
+            width: 700px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .header-left p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .role-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-message {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .bot-message {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .loading {
+            color: #999;
+            font-style: italic;
+        }
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid #eee;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        #userInput {
+            width: 100%;
+            padding: 14px 50px 14px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+        }
+        .voice-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        .voice-btn:hover {
+            transform: translateY(-50%) scale(1.2);
+        }
+        .voice-btn.recording {
+            color: #f5576c;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        #sendBtn {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        #sendBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .logout-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .logout-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-left">
+                <h2>&#x1F916; HR Assistant</h2>
+                <p>Ask me anything about HR policies!</p>
+            </div>
+            <div class="header-right">
+                <span class="role-badge" id="roleBadge">Employee</span>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm your HR assistant. Ask me about leave policies, working hours, benefits, or book meetings!
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input">
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" placeholder="Type your question here...">
+                    <button class="voice-btn" id="voiceBtn" title="Voice input">&#x1F3A4;</button>
+                </div>
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <a href="/" class="logout-link" onclick="logout()">Logout</a>
+
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const roleBadge = document.getElementById('roleBadge');
+
+    // Check if user is logged in
+    const userName = localStorage.getItem('userName');
+    const userRole = localStorage.getItem('userRole');
+    
+    if (!userName || !userRole) {
+        window.location.href = '/';
+    }
+
+    // Display role
+    roleBadge.innerHTML = userRole === 'hr' ? '&#x1F454; HR Manager' : '&#x1F464; Employee';
+
+    // Voice Recognition Setup with Auto-detect
+    let recognition = null;
+    let isRecording = false;
+    let finalTranscript = '';
+    let recognitionTimeout;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN';  // Indian English - handles Tanglish well
+
+        recognition.onstart = function() {
+            isRecording = true;
+            voiceBtn.classList.add('recording');
+            voiceBtn.innerHTML = '&#x1F534;';
+            finalTranscript = '';
+            addMessage('🎤 Listening... Speak now (Auto-detects language)', false);
+            console.log('Voice recognition started');
+        };
+
+        recognition.onend = function() {
+            isRecording = false;
+            voiceBtn.classList.remove('recording');
+            voiceBtn.innerHTML = '&#x1F3A4;';
+            
+            if (finalTranscript) {
+                userInput.value = finalTranscript.trim();
+                userInput.focus();
+                
+                // Remove listening message
+                const messages = chatMessages.getElementsByClassName('message');
+                if (messages.length > 0) {
+                    const lastMsg = messages[messages.length - 1];
+                    if (lastMsg.textContent.includes('Listening...')) {
+                        lastMsg.remove();
+                    }
+                }
+            }
+            console.log('Voice recognition ended');
+        };
+
+        recognition.onresult = function(event) {
+            clearTimeout(recognitionTimeout);
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                    console.log('Final:', transcript);
+                } else {
+                    interimTranscript += transcript;
+                    console.log('Interim:', transcript);
+                }
+            }
+            
+            // Show real-time transcription
+            userInput.value = (finalTranscript + interimTranscript).trim();
+            
+            // Auto-stop after 2 seconds of silence
+            recognitionTimeout = setTimeout(() => {
+                if (isRecording) {
+                    console.log('Auto-stopping due to silence');
+                    recognition.stop();
+                }
+            }, 2000);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Recognition error:', event.error);
+            isRecording = false;
+            voiceBtn.classList.remove('recording');
+            voiceBtn.innerHTML = '&#x1F3A4;';
+            
+            if (event.error === 'not-allowed') {
+                addMessage('❌ Microphone access denied. Please allow microphone in browser settings.', false);
+            } else if (event.error === 'no-speech') {
+                console.log('No speech detected');
+            } else if (event.error === 'audio-capture') {
+                addMessage('❌ No microphone found. Please check your device.', false);
+            } else if (event.error !== 'aborted') {
+                console.log('Error:', event.error);
+            }
+        };
+    } else {
+        console.log('Speech recognition not supported');
+        voiceBtn.style.display = 'none';
+    }
+
+    // Voice button click handler
+    voiceBtn.addEventListener('click', async function() {
+        console.log('Voice button clicked, isRecording:', isRecording);
+        
+        if (!recognition) {
+            alert('Voice recognition is not supported in your browser.\n\nPlease use:\n- Google Chrome\n- Microsoft Edge');
+            return;
+        }
+
+        if (isRecording) {
+            // Stop recording manually
+            console.log('Stopping recognition manually');
+            recognition.stop();
+            return;
+        }
+
+        // Request microphone permission and start recognition
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('Microphone access granted');
+            stream.getTracks().forEach(track => track.stop());
+            
+            try {
+                recognition.start();
+                console.log('Recognition started successfully');
+            } catch (err) {
+                console.error('Error starting recognition:', err);
+                if (err.name === 'InvalidStateError') {
+                    // Already running, just stop it
+                    recognition.stop();
+                } else {
+                    alert('Could not start voice recognition. Please try again.');
+                }
+            }
+        } catch (err) {
+            console.error('Microphone error:', err);
+            if (err.name === 'NotAllowedError') {
+                alert('Microphone access blocked!\n\nTo fix:\n1. Click the lock/camera icon in address bar\n2. Change Microphone to "Allow"\n3. Refresh the page');
+            } else if (err.name === 'NotFoundError') {
+                alert('No microphone found.\n\nPlease check:\n1. Microphone is connected\n2. Microphone is enabled in system settings');
+            } else {
+                alert('Microphone error: ' + err.message);
+            }
+        }
+    });
+
+    // Chat functions
+    function addMessage(text, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + (isUser ? 'user-message' : 'bot-message');
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showLoading() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message bot-message loading';
+        loadingDiv.textContent = 'Thinking...';
+        loadingDiv.id = 'loadingMessage';
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeLoading() {
+        const loading = document.getElementById('loadingMessage');
+        if (loading) {
+            loading.remove();
+        }
+    }
+
+    async function sendMessage() {
+        const question = userInput.value.trim();
+        if (!question) {
+            alert('Please enter a question or use voice input.');
+            return;
+        }
+
+        console.log('Sending message:', question);
+        addMessage(question, true);
+        userInput.value = '';
+        showLoading();
+
+        try {
+            const response = await fetch('http://localhost:8000/query/text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: question,
+                    employee_id: localStorage.getItem('userEmail') || 'guest@company.com'
+                })
+            });
+
+            console.log('Response status:', response.status);
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            removeLoading();
+
+            if (data.success) {
+                addMessage(data.response, false);
+            } else {
+                addMessage('Sorry, I encountered an error. Please try again.', false);
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            removeLoading();
+            addMessage('Error: Could not connect to the server.', false);
+        }
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', function() {
+        sendMessage();
+    });
+
+    userInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    function logout() {
+        localStorage.clear();
+    }
+
+    // Focus input on load
+    userInput.focus();
+
+    console.log('Chat initialized. User:', userName, 'Role:', userRole);
+</script>
+</body>
+</html>
