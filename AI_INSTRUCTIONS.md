@@ -74,4 +74,9 @@ SECURITY
 6. Have a Great UI/UX style ... Not like any fancy Style.
 
 
+### Present Architecture
+
+<img width="1024" height="559" alt="image" src="https://github.com/user-attachments/assets/6e4539ff-abc4-4d5a-b36e-9f2b8e1ff711" />
+
+
 NOTE - NO DEAD CODE OR DEAD FILES MUST BE CREATED AND NO CODE MUST BE WRITTEN UNECESSARLY AND CAUSE LAG OR BUGS. ALL THE CODE PRESENT IN VARIOUS PAGES MUST RUN !
