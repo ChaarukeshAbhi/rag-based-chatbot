@@ -72,3 +72,6 @@ SECURITY
 4. Typing effect of answers like ChatGPT
 5. Greet the user at starting .. (Not just Hey user ! ... But with their name.. must get it from backend)
 6. Have a Great UI/UX style ... Not like any fancy Style.
+
+
+NOTE - NO DEAD CODE OR DEAD FILES MUST BE CREATED AND NO CODE MUST BE WRITTEN UNECESSARLY AND CAUSE LAG OR BUGS. ALL THE CODE PRESENT IN VARIOUS PAGES MUST RUN !
